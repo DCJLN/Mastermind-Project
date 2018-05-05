@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="style_2.0.css">
+		<title>Mastermind</title>
+	</head>
+	
+	<body>
+		<h1 align="center">
+			<font size="7">Mastermind</font>
+		</h1>
+		
+		<div class="panel-container">
+			<div class="board">
+				<div class="attempt-container">
+					<form>
+						<div class="guess_tip_container" id="Containertorepeat">
+							<div class="guess-container">
+								<span class="guess-dot"></span>
+								<span class="guess-dot"></span>
+								<span class="guess-dot"></span>
+								<span class="guess-dot"></span>
+							</div>
+							<div class="tip-container">
+								<span class="tip-dot" style="background-color: white"></span>
+								<span class="tip-dot" style="background-color: black"></span>
+								<span class="tip-dot"></span>
+								<span class="tip-dot"></span>
+							</div>
+						</div>
+					</form>
+					
+					<script type="text/javascript">
+						var participantsField = document.getElementById("Containertorepeat"),
+							form = document.getElementsByTagName("form")[0],
+							nbline = 11,
+							i;
+						for(i=0; i<nbline; i++){
+						  var clone = participantsField.cloneNode(true);
+						  form.appendChild(clone);
+						}
+					</script>
+					
+				</div>
+				<div class="answer-container"></div>
+			</div>
+			
+			<div class="selection">
+				<div class="text">
+					<p>Your next guess:</p>
+				</div>
+				<div class="guess-container">
+					<span class="guess-dot" style="background-color: #3498db"></span>
+					<span class="guess-dot" style="background-color: #f1c40f"></span>
+					<span class="guess-dot" style="background-color: #e74c3c"></span>
+					<span class="guess-dot" style="background-color: #2ecc71"></span>
+				</div>
+				<div class="submit-button">
+					<input type="submit" value="submit">
+				</div>
+			</div>
+		</div>
+		
+	</body>
+	
+</html>
