@@ -1,0 +1,6 @@
+https://htmlcolorcodes.com/fr/
+https://weblog.west-wind.com/posts/2017/Nov/11/Flexing-your-HTML-Layout-Muscles-with-Flexbox
+https://www.youtube.com/watch?v=DDkxe5IyljQ&t=7s
+https://stackoverflow.com/questions/2091326/changing-text-color-onclick
+https://codereview.stackexchange.com/questions/134106/changing-color-on-button-click
+https://www.sitepoint.com/community/t/loop-div-and-all-the-contents-inside/39499/9
