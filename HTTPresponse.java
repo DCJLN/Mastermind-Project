@@ -48,8 +48,26 @@ public class HTTPresponse {
 			for(Map.Entry<String, String> header : headers.entrySet())
 				pw.println(header.getKey()+": "+header.getValue());
 		pw.println(); // header ends with an empty line.
-		if(responseBody != null)
-			pw.println(responseBody);
+		if(responseBody != null){
+			if(headers.containsKey("Transfer-Encoding") && headers.get("Transfer-Encoding").equals("Chunked")){
+				BufferedReader br = new BufferedReader(new StringReader(responseBody));
+				String line;
+				try{
+					while((line = br.readLine()) != null){
+						if(line.length() == 0)
+							continue;
+						pw.println(Integer.toHexString(line.length()+1));
+						pw.println(line);
+					}
+					pw.println("0");
+				}
+				catch(IOException e){
+					e.printStackTrace();
+				}
+			}
+			else
+				pw.println(responseBody);
+		}
 		pw.close();
 	}
 

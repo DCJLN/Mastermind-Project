@@ -92,6 +92,7 @@ public class MastermindWorker extends Thread{
 			// Header
 			HTTPresponse resp = new HTTPresponse("200");
 			resp.addHeader("Content-type", "text/"+ctype);
+			resp.addHeader("Transfer-Encoding", "Chunked");
 			BufferedReader bfr = new BufferedReader(new FileReader(file));
 			String line;
 			while ((line = bfr.readLine()) != null) {
