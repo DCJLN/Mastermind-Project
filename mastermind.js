@@ -1,12 +1,35 @@
-var participantsField = document.getElementById("Containertorepeat"),
-	form = document.getElementsByTagName("form")[0],
-	nbline = 11,
-	i;
-for(i=0; i<nbline; i++){
-  var clone = participantsField.cloneNode(true);
-  form.appendChild(clone);
-}
+for(i = 0; i < 12; i++){
+							
+	var newMainDiv = document.createElement("div")
+	newMainDiv.setAttribute("class", "guess-tip-container")
+	newMainDiv.setAttribute("id", "containertorepeat"+i)
+	
+	var newGuessDiv = document.createElement("div")
+	newGuessDiv.setAttribute("class", "guess-container")
+	newGuessDiv.setAttribute("id", "guess-cont"+i)
+	
+	var newTipDiv = document.createElement("div")
+	newTipDiv.setAttribute("class", "tip-container")
+	newTipDiv.setAttribute("id", "tip-cont"+i)
 
+	document.getElementsByTagName("form")[0].appendChild(newMainDiv)
+	document.getElementById("containertorepeat"+i).appendChild(newGuessDiv)
+	document.getElementById("containertorepeat"+i).appendChild(newTipDiv)
+
+	for(j = 0; j < 4; j++){
+		var newSpan = document.createElement("span")
+		newSpan.setAttribute("class", "guess-dot")
+		newSpan.setAttribute("id", "guessdot"+i+j)
+		document.getElementById("guess-cont"+i).appendChild(newSpan)
+	}
+
+	for(k = 0; k < 4; k++){
+		var newSpan = document.createElement("span")
+		newSpan.setAttribute("class", "tip-dot")
+		newSpan.setAttribute("id", "tipdot"+i+k)
+		document.getElementById("tip-cont"+i).appendChild(newSpan)
+	}
+}
 
 
 
