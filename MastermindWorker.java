@@ -8,42 +8,41 @@ public class MastermindWorker extends Thread{
 	private InputStream istream;
 	private Socket cs;
 	private byte correctCombo[];
-	private PrintWriter sockPrintWriter;
 
 	private Random rand = new Random();
 
 	public MastermindWorker(Socket clientSocket) throws IOException{
-		ostream = clientSocket.getOutputStream();
-		istream = clientSocket.getInputStream();
 		cs = clientSocket;
+		ostream = cs.getOutputStream();
+		istream = cs.getInputStream();
 		correctCombo = new byte[]{1,0,1,0};
 	}
 	@Override
 	public void run(){
 		try {
 			System.out.println("Received connection, HTTP request handler started.");
-
-			BufferedReader br = new BufferedReader(new InputStreamReader(istream));
-			sockPrintWriter = new PrintWriter(ostream, true); //Autoflush = true: println autoflushes
-			String requestString = br.readLine();
-			System.out.println("Received requestString: " + requestString);
-
-			String[] request = requestString.split(" ");
-			if(request.length != 3 || !request[0].equals("GET") || !request[2].equals("HTTP/1.1")){
-				sockPrintWriter.println("HTTP/1.1 400\r\n");
-				System.out.println("Unrecognized request, sent 404 and closing httpHandler.");
+			HTTPrequest request;
+			try{
+				request = new HTTPrequest(istream);
+			}
+			catch(IllegalArgumentException e){
+				System.out.println("Unrecognized request, sending 400 and closing connection");
+				HTTPresponse resp = new HTTPresponse("400");
+				resp.send(ostream);
 				cs.close();
 				return;
 			}
 
-			if(request[1].equals("/")){
-				System.out.println("Requesting root page: redirecting.");
-				sockPrintWriter.println("HTTP/1.1 303 See Other\r\nLocation: /play.html\r\n");
+			if(request.getUrl().equals("/")){
+				System.out.println("Requested root page: redirecting.");
+				HTTPresponse resp = new HTTPresponse("303");
+				resp.addHeader("Location","/play.html");
+				resp.send(ostream);
 				cs.close();
 				return;
 			}
 			
-			String[] url = request[1].split("\\?");
+			String[] url = request.getUrl().split("\\?");
 			// Removing leading slash
 			String filename = url[0].substring(1);
 			System.out.println("Requested: "+filename);
@@ -53,7 +52,8 @@ public class MastermindWorker extends Thread{
 			if(filename.equals("eval")){
 				if(url.length != 2){
 					System.out.println("Request improperly formated: 400");
-					sockPrintWriter.println("HTTP/1.1 400\r\n");
+					HTTPresponse resp = new HTTPresponse("400");
+					resp.send(ostream);
 					cs.close();
 					return;
 				}
@@ -67,7 +67,8 @@ public class MastermindWorker extends Thread{
 			// if file doesn't exist or has 0 or more than 1 extensions
 			if (!file.exists() || temp.length != 2) {
 				System.out.println("Requested file doesn't exist: 404");
-			    sockPrintWriter.println("HTTP/1.1 404 Not Found\r\n"); // the file does not exists
+				HTTPresponse resp = new HTTPresponse("404");
+				resp.send(ostream);
 			    cs.close();
 			    return;
 			}
@@ -81,20 +82,23 @@ public class MastermindWorker extends Thread{
 			else if(ext.equals("html"))
 				ctype = "html";
 			else{ // Requested an unauthorized file format, send 404
-				System.out.println("Requested unauthorized file format: 404");
-				sockPrintWriter.println("HTTP/1.1 404 Not Found\r\n");
+				System.out.println("Requested unauthorized file format: 403");
+				HTTPresponse resp = new HTTPresponse("403");
+				resp.send(ostream);
 				cs.close();
 				return;
 			}
 			System.out.println("Authorized file format and file exists: sending file...");
 			// Header
-			sockPrintWriter.println("HTTP/1.1 200 OK\r\nContent-type: text/"+ctype+"\r\n");
+			HTTPresponse resp = new HTTPresponse("200");
+			resp.addHeader("Content-type", "text/"+ctype);
 			BufferedReader bfr = new BufferedReader(new FileReader(file));
 			String line;
 			while ((line = bfr.readLine()) != null) {
-			    sockPrintWriter.println(line);
+			    resp.addRespLine(line);
 			}
 			bfr.close();
+			resp.send(ostream);
 			cs.close();
 			System.out.println("Request Processed successfully");
 			return;
@@ -109,7 +113,8 @@ public class MastermindWorker extends Thread{
 		String[] combination = vars.split("-");
 		if(combination.length != 4){
 			System.out.println("Combination is not 4 long, sending 400");
-			sockPrintWriter.println("HTTP/1.1 400\r\n");
+			HTTPresponse resp = new HTTPresponse("400");
+			resp.send(ostream);
 			return;		
 		}
 		byte[] combo = new byte[4];
@@ -120,7 +125,8 @@ public class MastermindWorker extends Thread{
 			catch(NumberFormatException e){
 				// Couldn't parse one of the colors
 				System.out.println("Couldn't parse combination, sending 400");
-				sockPrintWriter.println("HTTP/1.1 400\r\n");
+				HTTPresponse resp = new HTTPresponse("400");
+				resp.send(ostream);
 				return;
 			}
 		}
@@ -149,6 +155,9 @@ public class MastermindWorker extends Thread{
 		}
 
 		System.out.println("Successfully tested combination");
-		sockPrintWriter.println("HTTP/1.1 204 No Content\r\nCorrect: "+correct+"\r\nMisplaced: "+misplaced+"\r\n");
+		HTTPresponse resp = new HTTPresponse("204");
+		resp.addHeader("Correct", Integer.toString(correct));
+		resp.addHeader("Misplaced", Integer.toString(misplaced));
+		resp.send(ostream);
 	}
 }
