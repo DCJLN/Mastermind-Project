@@ -30,9 +30,9 @@ function submitCombination(){
 	for(i = 1; i<= 4; i++)
 		buttons.push(document.getElementById("button"+i));
 
-	var url = "http://localhost:8019/play.html?";
+	var url = "http://localhost:8019/eval?";
 	for(i = 1; i <= 4; i++)
-		url+="selection"+i+"="+buttons[i-1].color+"&";
+		url+=buttons[i-1].color+"-";
 	url = url.slice(0,-1);
 	console.log(url);
 	httpGet(url, processResponse);
@@ -49,17 +49,16 @@ window.onload = function(){
 function httpGet(url, callback){
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() {
-    	console.log(xmlHttp);
-    	
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-            callback(xmlHttp.responseText);
+        if (xmlHttp.readyState == 4)
+            callback(this);
     }
     xmlHttp.open("GET", url, true); // true for asynchronous
     xmlHttp.send(null);
 }
 
-function processResponse(responseText){
-	document.open();
-	document.write(responseText);
-	document.close();
+function processResponse(request){
+	var correct = request.getResponseHeader("Correct");
+	var misplaced = request.getResponseHeader("Misplaced");
+	console.log("correct: "+correct);
+	console.log("misplaced: "+misplaced);
 }

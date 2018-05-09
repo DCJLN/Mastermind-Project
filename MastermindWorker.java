@@ -1,18 +1,14 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.lang.*;
 
 public class MastermindWorker extends Thread{
 	private OutputStream ostream;
 	private InputStream istream;
 	private Socket cs;
-	private byte combination[];
-	private byte previousTries[][];
-	private boolean gameStarted;
-	private boolean playing;
-	private static final byte PROTOCOL_VERSION = 1;
-	private byte nbTries;
-	private BufferedReader br;
+	private byte correctCombo[];
+	private PrintWriter sockPrintWriter;
 
 	private Random rand = new Random();
 
@@ -20,210 +16,139 @@ public class MastermindWorker extends Thread{
 		ostream = clientSocket.getOutputStream();
 		istream = clientSocket.getInputStream();
 		cs = clientSocket;
-		gameStarted = false;
-		playing = true;
-		nbTries = 0;
-		previousTries = new byte[12][6];
-		combination = new byte[4];
-	
-}
+		correctCombo = new byte[]{1,0,1,0};
+	}
 	@Override
 	public void run(){
 		try {
-			System.out.println("Worker started.");
+			System.out.println("Received connection, HTTP request handler started.");
 
-			br = new BufferedReader(new InputStreamReader(istream));
-			String request = br.readLine();
-			System.out.println("Received request: " + request);
-			PrintWriter out = new PrintWriter(ostream, true);
+			BufferedReader br = new BufferedReader(new InputStreamReader(istream));
+			sockPrintWriter = new PrintWriter(ostream, true); //Autoflush = true: println autoflushes
+			String requestString = br.readLine();
+			System.out.println("Received requestString: " + requestString);
 
-			String[] requestParam = request.split(" ");
-			if(!requestParam[0].equals("GET") || !requestParam[2].equals("HTTP/1.1")){
-				out.println("HTTP/1.1 400\r\n");
-				System.out.println("Unrecognized request1, closing.");
-				out.close();
+			String[] request = requestString.split(" ");
+			if(request.length != 3 || !request[0].equals("GET") || !request[2].equals("HTTP/1.1")){
+				sockPrintWriter.println("HTTP/1.1 400\r\n");
+				System.out.println("Unrecognized request, sent 404 and closing httpHandler.");
 				cs.close();
 				return;
 			}
 
-			if(requestParam[1].equals("/")){
-				out.println("HTTP/1.1 303 See Other\r\nLocation: /play.html\r\n");
-				out.close();
+			if(request[1].equals("/")){
+				System.out.println("Requesting root page: redirecting.");
+				sockPrintWriter.println("HTTP/1.1 303 See Other\r\nLocation: /play.html\r\n");
+				cs.close();
+				return;
+			}
+			
+			String[] url = request[1].split("\\?");
+			// Removing leading slash
+			String filename = url[0].substring(1);
+			System.out.println("Requested: "+filename);
+			String[]  temp = filename.split("\\.");
+
+
+			if(filename.equals("eval")){
+				if(url.length != 2){
+					System.out.println("Request improperly formated: 400");
+					sockPrintWriter.println("HTTP/1.1 400\r\n");
+					cs.close();
+					return;
+				}
+				String params = url[1];
+				testCombination(params);
+				cs.close();
 				return;
 			}
 
-			
-			String[] url = requestParam[1].split("\\?");
-			System.out.println("split url length: "+url.length);
-			String filename = url[0].substring(1);
-			System.out.println("file name: "+filename);
 			File file = new File(filename);
-			if (!file.exists()) {
-			     out.println("HTTP/1.1 404\r\n"); // the file does not exists
-			     out.close();
-			     return;
+			// if file doesn't exist or has 0 or more than 1 extensions
+			if (!file.exists() || temp.length != 2) {
+				System.out.println("Requested file doesn't exist: 404");
+			    sockPrintWriter.println("HTTP/1.1 404 Not Found\r\n"); // the file does not exists
+			    cs.close();
+			    return;
 			}
-			System.out.println(requestParam[1]);
-			String[] nomFichier = filename.split("\\.");
-			System.out.println("longueur nomFichier: "+nomFichier.length);
-			String extension = nomFichier[1];
-			out.println("HTTP/1.1 200 OK");
+			// Else the file exists, send the file
+			String ext = temp[1];
 			String ctype = "";
-			if(extension.equals("css"))
+			if(ext.equals("css"))
 				ctype = "css";
-			if(extension.equals("js"))
+			else if(ext.equals("js"))
 				ctype = "javascript";
-			if(extension.equals("html"))
+			else if(ext.equals("html"))
 				ctype = "html";
-			out.println("Content-type: text/"+ctype+"\r\n");
-			FileReader fr = new FileReader(file);
-			BufferedReader bfr = new BufferedReader(fr);
+			else{ // Requested an unauthorized file format, send 404
+				System.out.println("Requested unauthorized file format: 404");
+				sockPrintWriter.println("HTTP/1.1 404 Not Found\r\n");
+				cs.close();
+				return;
+			}
+			System.out.println("Authorized file format and file exists: sending file...");
+			// Header
+			sockPrintWriter.println("HTTP/1.1 200 OK\r\nContent-type: text/"+ctype+"\r\n");
+			BufferedReader bfr = new BufferedReader(new FileReader(file));
 			String line;
 			while ((line = bfr.readLine()) != null) {
-			    out.println(line);
+			    sockPrintWriter.println(line);
 			}
 			bfr.close();
-
-			if(url.length == 2){
-				String[] buttons = url[1].split("&");
-				System.out.println("number of buttons: "+buttons.length);
-	
-				if(buttons.length != 4){
-					out.println("<script>alert(\"Combinaison non-reconnue.\")</script>");
-					out.close();
-					System.out.println("Processed request, closing socket.");
-					cs.close();
-				}
-	
-				for(int i = 0; i < 4; i++){
-					String[] keyVal = buttons[i].split("=");
-					if(keyVal.length != 2){
-						ostream.write("HTTP 400".getBytes());
-						System.out.println("Unrecognized request3, closing.");
-						cs.close();
-						return;
-					}
-					out.println("<script> document.getElementById(\"button"+i+"\").backgroundColor = colors["+keyVal[1]+"];</script>");
-				}
-			}
-
-			out.close();
-			System.out.println("Processed request, closing socket.");
 			cs.close();
-			/*
-			byte msg[] = new byte[6];
-			while(playing){
-				int len = istream.read(msg);
-				if(len <= 0)
-					break;
-
-				// Messages with different protocol versions shouldn't be interpreted any further
-				if(msg[0] != PROTOCOL_VERSION)
-					sendMessage(new byte[] {PROTOCOL_VERSION,4});
-					
-				switch(msg[1]){
-					case 0:
-					if(len == 2)
-						startGame();
-					else
-						sendMessage(new byte[] {PROTOCOL_VERSION,4});
-					break;
-					case 1:
-					if(gameStarted)
-						checkCombination(msg, len);
-					else
-						sendMessage(new byte[] {PROTOCOL_VERSION,4});
-					break;
-					case 2:
-					if(len == 2)
-						listTries();
-					else
-						sendMessage(new byte[] {PROTOCOL_VERSION,4});
-					break;
-					default:
-					sendMessage(new byte[] {PROTOCOL_VERSION,4});
-				}
-			}*/
+			System.out.println("Request Processed successfully");
+			return;
 		}
 		catch(Exception e){
 			e.printStackTrace();
 		}
 	}
 
-	private void sendMessage(byte msg[]) throws IOException{
-		ostream.write(msg);
-		ostream.flush();
-	}
-
-	private void startGame() throws IOException{
-		if(gameStarted){
-			// Can't start a game if the previous one hasn't been won or lost.
-			sendMessage(new byte[] {PROTOCOL_VERSION,4});
-			return;
+	private void testCombination(String vars){
+		System.out.println("Entered testCombination().");
+		String[] combination = vars.split("-");
+		if(combination.length != 4){
+			System.out.println("Combination is not 4 long, sending 400");
+			sockPrintWriter.println("HTTP/1.1 400\r\n");
+			return;		
 		}
-		gameStarted = true;
-		nbTries = 0;
-		previousTries = new byte[12][6];
-		System.out.print("Selected combination: ");
+		byte[] combo = new byte[4];
 		for(int i = 0; i < 4; i++){
-			combination[i] = (byte)rand.nextInt(6);
-			// Using a string as a character lookup table
-			System.out.print("RBYGWK".charAt(combination[i]));
+			try{
+				combo[i] = Byte.parseByte(combination[i]);
+			}
+			catch(NumberFormatException e){
+				// Couldn't parse one of the colors
+				System.out.println("Couldn't parse combination, sending 400");
+				sockPrintWriter.println("HTTP/1.1 400\r\n");
+				return;
+			}
 		}
-		
-		System.out.print("\n");
-		sendMessage(new byte[] {PROTOCOL_VERSION,1});
-	}
 
-	private void checkCombination(byte msg[], int len) throws IOException{
-		if(len != 6){
-			sendMessage(new byte[] {PROTOCOL_VERSION,4});
-			return;
-		}
-		nbTries++;
 		byte correct = 0;
 		byte misplaced = 0;
-		byte cmb[] = combination.clone();
+		byte cmb[] = correctCombo.clone();
 
-		// Copy the combination into previousTries
-		for(byte i = 0; i < 4; i++)
-			previousTries[nbTries-1][i] = msg[i+2];
-
-		// Count correct guesses and remove them from both cmb and msg so they're not counted multiple times
+		// Count correct guesses and remove them from both cmb and combo so they're not counted multiple times
 		for(byte i = 0; i < 4; i++){
-			if(msg[i+2] == cmb[i]){
+			if(combo[i] == cmb[i]){
 				correct++;
-				msg[i+2] = -1;
+				combo[i] = -1;
 				cmb[i] = -1;
 			}
 		}
 		// Count misplaced guesses, remove them after so they're not counted multiple times.
 		for(byte i = 0; i < 4; i++){
 			for(byte j = 0; j < 4; j++){
-				if(msg[i+2] != -1 && msg[i+2] == cmb[j]){
+				if(combo[i] != -1 && combo[i] == cmb[j]){
+					System.out.println("misplaced: "+i+" matches with "+j);
 					misplaced++;
-					cmb[j] = -1;
+					combo[i] = -1;
 				}
 			}
 		}
 
-		// Save the correctness along the combination so that it doesn't need to be recalculated if client asks for previous attempts
-		previousTries[nbTries-1][4] = correct;
-		previousTries[nbTries-1][5] = misplaced;
-		sendMessage(new byte[] {PROTOCOL_VERSION,2,correct,misplaced});
-		if(nbTries == 12 || correct == 4){
-			gameStarted = false;
-		}
-	}
-
-	private void listTries() throws IOException{
-		byte msg[] = new byte[3+nbTries*6];
-		msg[0] = PROTOCOL_VERSION;
-		msg[1] = 3;
-		msg[2] = nbTries;
-		// 3+6*i is the index of an attempt in the byte array
-		for(byte i = 0; i < nbTries; i++)
-			System.arraycopy(previousTries[i], 0, msg, 3+6*i, 6);
-		sendMessage(msg);
+		System.out.println("Successfully tested combination");
+		sockPrintWriter.println("HTTP/1.1 204 No Content\r\nCorrect: "+correct+"\r\nMisplaced: "+misplaced+"\r\n");
 	}
 }
