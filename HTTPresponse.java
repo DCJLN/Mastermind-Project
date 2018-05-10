@@ -6,7 +6,7 @@ public class HTTPresponse {
 	private String httpVersion;
 	private String returnCode;
 	private String status;
-	private Map<String, String> headers;
+	private Map<String, Set<String>> headers;
 	private String responseBody;
 
 	private Map<String, String> defaultStatus;
@@ -25,13 +25,9 @@ public class HTTPresponse {
 		defaultStatus.put("505", "HTTP Version Not Supported");
 	}
 
-	public HTTPresponse(String httpVersion, String returnCode, String status, Map headers, String responseBody){
-
-	}
-
 	public HTTPresponse(String returnCode) throws IllegalArgumentException{
 		defaultStatus = new HashMap<String, String>();
-		headers = new HashMap<String, String>();
+		headers = new HashMap<String, Set<String>>();
 		responseBody = "";
 		initializeDefaultStatus();
 		if(!defaultStatus.containsKey(returnCode))
@@ -45,17 +41,19 @@ public class HTTPresponse {
 		PrintWriter pw = new PrintWriter(ostream);
 		pw.println("HTTP/"+httpVersion+" "+returnCode+" "+status);
 		if(headers != null)
-			for(Map.Entry<String, String> header : headers.entrySet())
-				pw.println(header.getKey()+": "+header.getValue());
+			for(Map.Entry<String, Set<String>> header : headers.entrySet())
+				for(String value : header.getValue())
+					pw.println(header.getKey()+": "+value);
 		pw.println(); // header ends with an empty line.
 		if(responseBody != null){
-			if(headers.containsKey("Transfer-Encoding") && headers.get("Transfer-Encoding").equals("Chunked")){
+			if(headers.containsKey("Transfer-Encoding") && headers.get("Transfer-Encoding").contains("Chunked")){
 				BufferedReader br = new BufferedReader(new StringReader(responseBody));
 				String line;
 				try{
 					while((line = br.readLine()) != null){
 						if(line.length() == 0)
 							continue;
+						// length + 1 for the newline character.
 						pw.println(Integer.toHexString(line.length()+1));
 						pw.println(line);
 					}
@@ -72,7 +70,10 @@ public class HTTPresponse {
 	}
 
 	public void addHeader(String key, String value){
-		headers.put(key,value);
+		if(headers.containsKey(key))
+			headers.get(key).add(value);
+		else
+			headers.put(key, new HashSet<String>(Arrays.asList(value)));
 	}
 
 	public void addRespLine(String line){

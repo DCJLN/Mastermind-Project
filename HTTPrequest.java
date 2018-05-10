@@ -6,10 +6,10 @@ public class HTTPrequest {
 	private String method;
 	private String url;
 	private String httpVersion;
-	private Map<String, String> headers;
+	private Map<String, Set<String>> headers;
 
 	public HTTPrequest(InputStream istream) throws IllegalArgumentException, IOException{
-		headers = new HashMap<String, String>();
+		headers = new HashMap<String, Set<String>>();
 
 		BufferedReader br = new BufferedReader(new InputStreamReader(istream));
 		String request = br.readLine();
@@ -29,14 +29,27 @@ public class HTTPrequest {
 		String line;
 		while(!(line = br.readLine()).equals("")){
 			temp = line.split(": ");
-			if(temp.length != 2 || headers.containsKey(temp[0]))
+			if(temp.length != 2)
 				throw new IllegalArgumentException("Request couldn't be understood");
-			headers.put(temp[0], temp[1]);
+			addHeader(temp[0], temp[1]);
 		}
 	}
 
 	public String getUrl(){
 		return url;
+	}
+
+	public Set<String> getHeader(String key){
+		if(headers.containsKey(key))
+			return headers.get(key);
+		return null;
+	}
+
+	public void addHeader(String key, String value){
+		if(headers.containsKey(key))
+			headers.get(key).add(value);
+		else
+			headers.put(key, new HashSet<String>(Arrays.asList(value)));
 	}
 
 	/*
