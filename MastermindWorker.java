@@ -8,14 +8,16 @@ public class MastermindWorker extends Thread{
 	private InputStream istream;
 	private Socket cs;
 	private byte correctCombo[];
+	private Map<String, MastermindSession> sessions;
+	private MastermindSession currentSession;
+	private String[] colors;
 
-	private Random rand = new Random();
-
-	public MastermindWorker(Socket clientSocket) throws IOException{
+	public MastermindWorker(Socket clientSocket, Map<String, MastermindSession> sessions) throws IOException{
+		this.sessions = sessions;
 		cs = clientSocket;
 		ostream = cs.getOutputStream();
 		istream = cs.getInputStream();
-		correctCombo = new byte[]{1,0,1,0};
+		colors = new String[]{"red", "blue", "yellow", "green", "white", "black"};
 	}
 	@Override
 	public void run(){
@@ -46,8 +48,55 @@ public class MastermindWorker extends Thread{
 			// Removing leading slash
 			String filename = url[0].substring(1);
 			System.out.println("Requested: "+filename);
-			String[]  temp = filename.split("\\.");
 
+			int skip = 0;
+			List<Byte[]> attempts = null;
+			if(filename.equals("play.html") || filename.equals("eval")){
+				System.out.println("Currently stored sessions: ");
+				for(String id : sessions.keySet())
+					System.out.println(id);
+				deleteInvalidSessions();
+				System.out.println("After deleting invalids: ");
+				for(String id : sessions.keySet())
+					System.out.println(id);
+				Set<String> cookies = request.getHeader("Cookie");
+				if(cookies != null){					
+					String allCookies = "";
+					for(String cookie : cookies)
+						allCookies += cookie+"; ";
+					String[] cookieArray = allCookies.split("; ");
+					Map<String, String> cookieMap = new HashMap<String, String>();
+					for(String cookie : cookieArray){
+						String[] temp = cookie.split("=");
+						if(temp.length == 2)
+							cookieMap.put(temp[0], temp[1]);
+					}
+					if(cookieMap.containsKey("SESSID")){
+						if(sessions.containsKey(cookieMap.get("SESSID"))){
+							currentSession = sessions.get(cookieMap.get("SESSID"));
+						}
+						else{
+							currentSession = new MastermindSession();
+							sessions.put(currentSession.getID(), currentSession);
+						}
+					}
+					else{
+						currentSession = new MastermindSession();
+						sessions.put(currentSession.getID(), currentSession);
+					}
+				}
+				else{
+					currentSession = new MastermindSession();
+					sessions.put(currentSession.getID(), currentSession);
+				}
+				skip = (12 - currentSession.nbTries())*8;
+				attempts = currentSession.previousTries();
+				correctCombo = currentSession.getCombo();
+				System.out.print("Correct combo: ");
+				for(int i = 0; i < 4; i++)
+					System.out.print(correctCombo[i]);
+				System.out.println();
+			}
 
 			if(filename.equals("eval")){
 				if(url.length != 2){
@@ -65,6 +114,7 @@ public class MastermindWorker extends Thread{
 
 			File file = new File(filename);
 			// if file doesn't exist or has 0 or more than 1 extensions
+			String[]  temp = filename.split("\\.");
 			if (!file.exists() || temp.length != 2) {
 				System.out.println("Requested file doesn't exist: 404");
 				HTTPresponse resp = new HTTPresponse("404");
@@ -89,14 +139,31 @@ public class MastermindWorker extends Thread{
 				return;
 			}
 			System.out.println("Authorized file format and file exists: sending file...");
-			// Header
 			HTTPresponse resp = new HTTPresponse("200");
 			resp.addHeader("Content-type", "text/"+ctype);
 			resp.addHeader("Transfer-Encoding", "Chunked");
+			if(filename.equals("play.html"))
+				resp.addHeader("Set-Cookie", "SESSID="+currentSession.getID());
 			BufferedReader bfr = new BufferedReader(new FileReader(file));
 			String line;
+			int currentAttempt = 11;
+			int column = 0;
 			while ((line = bfr.readLine()) != null) {
-			    resp.addRespLine(line);
+				if(filename.equals("play.html")){
+					if(line.contains("&")){
+						if(skip == 0){
+							line.replace("&", colors[attempts.get(currentAttempt)[column%4]]);
+							if(column == 7)
+								currentAttempt--;
+						}
+						else{
+							line.replace(" &", "");
+							skip--;
+						}
+						column = (column+1)%8;
+					}
+				}
+				resp.addRespLine(line);
 			}
 			bfr.close();
 			resp.send(ostream);
@@ -110,7 +177,6 @@ public class MastermindWorker extends Thread{
 	}
 
 	private void testCombination(String vars){
-		System.out.println("Entered testCombination().");
 		String[] combination = vars.split("-");
 		if(combination.length != 4){
 			System.out.println("Combination is not 4 long, sending 400");
@@ -132,6 +198,13 @@ public class MastermindWorker extends Thread{
 			}
 		}
 
+		System.out.print("Testing combination ");
+		for(int i = 0; i < 4; i++)
+			System.out.print(combo[i]);
+		System.out.println();
+
+		System.out.println("Current attempt: "+currentSession.nextTry());
+
 		byte correct = 0;
 		byte misplaced = 0;
 		byte cmb[] = correctCombo.clone();
@@ -148,17 +221,27 @@ public class MastermindWorker extends Thread{
 		for(byte i = 0; i < 4; i++){
 			for(byte j = 0; j < 4; j++){
 				if(combo[i] != -1 && combo[i] == cmb[j]){
-					System.out.println("misplaced: "+i+" matches with "+j);
 					misplaced++;
 					combo[i] = -1;
 				}
 			}
 		}
 
+		if(correct == 4)
+			currentSession.invalidate();
+
 		System.out.println("Successfully tested combination");
 		HTTPresponse resp = new HTTPresponse("204");
 		resp.addHeader("Correct", Integer.toString(correct));
 		resp.addHeader("Misplaced", Integer.toString(misplaced));
+		resp.addHeader("Set-Cookie", "SESSID="+currentSession.getID());
 		resp.send(ostream);
+	}
+
+	public void deleteInvalidSessions(){
+		// 10 min = 600000 ms
+		sessions.entrySet().removeIf(entry -> entry.getValue().getAge() > 600000);
+		sessions.entrySet().removeIf(entry -> entry.getValue().nbTries() >= 12);
+
 	}
 }

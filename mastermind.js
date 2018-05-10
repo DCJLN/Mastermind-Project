@@ -1,4 +1,4 @@
-for(i = 0; i < 12; i++){
+/*for(i = 0; i < 12; i++){
 							
 	var newMainDiv = document.createElement("div")
 	newMainDiv.setAttribute("class", "guess-tip-container")
@@ -29,23 +29,19 @@ for(i = 0; i < 12; i++){
 		newSpan.setAttribute("id", "tipdot"+i+k)
 		document.getElementById("tip-cont"+i).appendChild(newSpan)
 	}
-}
+}*/
 
 
 
 // colors: RED BLUE YELLOW GREEN WHITE BLACK
-var colors = [
-"rgb(231, 76, 60)",
-"rgb(52, 152, 219)",
-"rgb(241, 196, 15)",
-"rgb(46, 204, 113)",
-"white",
-"black"];
+var buttons = [];
+var colors = ["red", "blue", "yellow", "green", "white", "black"];
 
 function cycleColor(buttonID){
 	el = document.getElementById(buttonID);
+	el.classList.remove(colors[el.color]);
 	el.color = (el.color+1)%6;
-	el.style.backgroundColor = colors[el.color];
+	el.classList.add(colors[el.color]);
 }
 
 function submitCombination(){
@@ -62,11 +58,10 @@ function submitCombination(){
 }
 
 window.onload = function(){
-	var buttons = [];
 	for(i = 1; i<= 4; i++)
 		buttons.push(document.getElementById("button"+i));
 	for(b of buttons)
-		b.color = colors.indexOf(b.style.backgroundColor);
+		b.color = colors.indexOf(b.classList[1]);
 }
 
 function httpGet(url, callback){

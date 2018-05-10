@@ -89,3 +89,28 @@ body{
 	border-style: solid;
     display: inline-block;
 }
+
+.red {
+	background-color: rgb(231, 76, 60);
+}
+
+.blue {
+	background-color: rgb(52, 152, 219);
+}
+
+.yellow {
+	background-color: rgb(241, 196, 15);
+}
+
+.green {
+	background-color: rgb(46, 204, 113);
+}
+
+.white {
+	background-color: white;
+}
+
+.black {
+	background-color: black;
+}
+
