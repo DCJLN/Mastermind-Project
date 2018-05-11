@@ -4,6 +4,7 @@
 		<meta charset="utf-8"/>
 		<link rel="stylesheet" href="style.css"/>
 		<title>Mastermind</title>
+		<script src="mastermind.js" defer="defer"></script>
 	</head>
 	
 	<body>
@@ -14,10 +15,178 @@
 		<div class="panel-container">
 			<div class="board">
 				<div class="attempt-container">
-					<form></form>
-					<script src="mastermind.js"></script>
+					<form>
+						<div class="guess-tip-containeer">
+							<span class="guess-container">
+								<span class="guess-dot &" id="guessdot00"></span>
+								<span class="guess-dot &" id="guessdot01"></span>
+								<span class="guess-dot &" id="guessdot02"></span>
+								<span class="guess-dot &" id="guessdot03"></span>
+							</span>
+							<span class="tip-container">
+								<span class="tip-dot &" id="tipdot00"></span>
+								<span class="tip-dot &" id="tipdot01"></span>
+								<span class="tip-dot &" id="tipdot02"></span>
+								<span class="tip-dot &" id="tipdot03"></span>
+							</span>
+						</div>
+						<div class="guess-tip-containeer">
+							<span class="guess-container">
+								<span class="guess-dot &" id="guessdot10"></span>
+								<span class="guess-dot &" id="guessdot11"></span>
+								<span class="guess-dot &" id="guessdot12"></span>
+								<span class="guess-dot &" id="guessdot13"></span>
+							</span>
+							<span class="tip-container">
+								<span class="tip-dot &" id="tipdot10"></span>
+								<span class="tip-dot &" id="tipdot11"></span>
+								<span class="tip-dot &" id="tipdot12"></span>
+								<span class="tip-dot &" id="tipdot13"></span>
+							</span>
+						</div>
+						<div class="guess-tip-containeer">
+							<span class="guess-container">
+								<span class="guess-dot &" id="guessdot20"></span>
+								<span class="guess-dot &" id="guessdot21"></span>
+								<span class="guess-dot &" id="guessdot22"></span>
+								<span class="guess-dot &" id="guessdot23"></span>
+							</span>
+							<span class="tip-container">
+								<span class="tip-dot &" id="tipdot20"></span>
+								<span class="tip-dot &" id="tipdot21"></span>
+								<span class="tip-dot &" id="tipdot22"></span>
+								<span class="tip-dot &" id="tipdot23"></span>
+							</span>
+						</div>
+						<div class="guess-tip-containeer">
+							<span class="guess-container">
+								<span class="guess-dot &" id="guessdot30"></span>
+								<span class="guess-dot &" id="guessdot31"></span>
+								<span class="guess-dot &" id="guessdot32"></span>
+								<span class="guess-dot &" id="guessdot33"></span>
+							</span>
+							<span class="tip-container">
+								<span class="tip-dot &" id="tipdot30"></span>
+								<span class="tip-dot &" id="tipdot31"></span>
+								<span class="tip-dot &" id="tipdot32"></span>
+								<span class="tip-dot &" id="tipdot33"></span>
+							</span>
+						</div>
+						<div class="guess-tip-containeer">
+							<span class="guess-container">
+								<span class="guess-dot &" id="guessdot40"></span>
+								<span class="guess-dot &" id="guessdot41"></span>
+								<span class="guess-dot &" id="guessdot42"></span>
+								<span class="guess-dot &" id="guessdot43"></span>
+							</span>
+							<span class="tip-container">
+								<span class="tip-dot &" id="tipdot40"></span>
+								<span class="tip-dot &" id="tipdot41"></span>
+								<span class="tip-dot &" id="tipdot42"></span>
+								<span class="tip-dot &" id="tipdot43"></span>
+							</span>
+						</div>
+						<div class="guess-tip-containeer">
+							<span class="guess-container">
+								<span class="guess-dot &" id="guessdot50"></span>
+								<span class="guess-dot &" id="guessdot51"></span>
+								<span class="guess-dot &" id="guessdot52"></span>
+								<span class="guess-dot &" id="guessdot53"></span>
+							</span>
+							<span class="tip-container">
+								<span class="tip-dot &" id="tipdot50"></span>
+								<span class="tip-dot &" id="tipdot51"></span>
+								<span class="tip-dot &" id="tipdot52"></span>
+								<span class="tip-dot &" id="tipdot53"></span>
+							</span>
+						</div>
+						<div class="guess-tip-containeer">
+							<span class="guess-container">
+								<span class="guess-dot &" id="guessdot60"></span>
+								<span class="guess-dot &" id="guessdot61"></span>
+								<span class="guess-dot &" id="guessdot62"></span>
+								<span class="guess-dot &" id="guessdot63"></span>
+							</span>
+							<span class="tip-container">
+								<span class="tip-dot &" id="tipdot60"></span>
+								<span class="tip-dot &" id="tipdot61"></span>
+								<span class="tip-dot &" id="tipdot62"></span>
+								<span class="tip-dot &" id="tipdot63"></span>
+							</span>
+						</div>
+						<div class="guess-tip-containeer">
+							<span class="guess-container">
+								<span class="guess-dot &" id="guessdot70"></span>
+								<span class="guess-dot &" id="guessdot71"></span>
+								<span class="guess-dot &" id="guessdot72"></span>
+								<span class="guess-dot &" id="guessdot73"></span>
+							</span>
+							<span class="tip-container">
+								<span class="tip-dot &" id="tipdot70"></span>
+								<span class="tip-dot &" id="tipdot71"></span>
+								<span class="tip-dot &" id="tipdot72"></span>
+								<span class="tip-dot &" id="tipdot73"></span>
+							</span>
+						</div>
+						<div class="guess-tip-containeer">
+							<span class="guess-container">
+								<span class="guess-dot &" id="guessdot80"></span>
+								<span class="guess-dot &" id="guessdot81"></span>
+								<span class="guess-dot &" id="guessdot82"></span>
+								<span class="guess-dot &" id="guessdot83"></span>
+							</span>
+							<span class="tip-container">
+								<span class="tip-dot &" id="tipdot80"></span>
+								<span class="tip-dot &" id="tipdot81"></span>
+								<span class="tip-dot &" id="tipdot82"></span>
+								<span class="tip-dot &" id="tipdot83"></span>
+							</span>
+						</div>
+						<div class="guess-tip-containeer">
+							<span class="guess-container">
+								<span class="guess-dot &" id="guessdot90"></span>
+								<span class="guess-dot &" id="guessdot91"></span>
+								<span class="guess-dot &" id="guessdot92"></span>
+								<span class="guess-dot &" id="guessdot93"></span>
+							</span>
+							<span class="tip-container">
+								<span class="tip-dot &" id="tipdot90"></span>
+								<span class="tip-dot &" id="tipdot91"></span>
+								<span class="tip-dot &" id="tipdot92"></span>
+								<span class="tip-dot &" id="tipdot93"></span>
+							</span>
+						</div>
+						<div class="guess-tip-containeer">
+							<span class="guess-container">
+								<span class="guess-dot &" id="guessdota0"></span>
+								<span class="guess-dot &" id="guessdota1"></span>
+								<span class="guess-dot &" id="guessdota2"></span>
+								<span class="guess-dot &" id="guessdota3"></span>
+							</span>
+							<span class="tip-container">
+								<span class="tip-dot &" id="tipdota0"></span>
+								<span class="tip-dot &" id="tipdota1"></span>
+								<span class="tip-dot &" id="tipdota2"></span>
+								<span class="tip-dot &" id="tipdota3"></span>
+							</span>
+						</div>
+		 				<div class="guess-tip-containeer">
+							<span class="guess-container">
+								<span class="guess-dot &" id="guessdotb0"></span>
+								<span class="guess-dot &" id="guessdotb1"></span>
+								<span class="guess-dot &" id="guessdotb2"></span>
+								<span class="guess-dot &" id="guessdotb3"></span>
+							</span>
+							<span class="tip-container">
+								<span class="tip-dot &" id="tipdotb0"></span>
+								<span class="tip-dot &" id="tipdotb1"></span>
+								<span class="tip-dot &" id="tipdotb2"></span>
+								<span class="tip-dot &" id="tipdotb3"></span>
+							</span>
+						</div>
+					</form>
+					
 				</div>
-				<div class="answer-container"></div>
 			</div>
 			
 			<div class="selection">
@@ -25,10 +194,10 @@
 					<p>Your next guess:</p>
 				</div>
 				<div class="guess-container">
-					<span id="button1" onclick="cycleColor('button1')" class="guess-dot" style="background-color: #3498db"></span>
-					<span id="button2" onclick="cycleColor('button2')" class="guess-dot" style="background-color: #f1c40f"></span>
-					<span id="button3" onclick="cycleColor('button3')" class="guess-dot" style="background-color: #e74c3c"></span>
-					<span id="button4" onclick="cycleColor('button4')" class="guess-dot" style="background-color: #2ecc71"></span>
+					<span id="button1" onclick="cycleColor('button1')" class="guess-dot blue"></span>
+					<span id="button2" onclick="cycleColor('button2')" class="guess-dot yellow"></span>
+					<span id="button3" onclick="cycleColor('button3')" class="guess-dot red"></span>
+					<span id="button4" onclick="cycleColor('button4')" class="guess-dot green"></span>
 				</div>
 				<div class="submit-button">
 					<input type="submit" value="submit" onclick="submitCombination()"/>
