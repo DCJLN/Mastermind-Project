@@ -2,6 +2,7 @@
 var buttons = [];
 var colors = ["red", "blue", "yellow", "green", "white", "black"];
 var row = 0;
+var gameOver = false;
 
 function cycleColor(buttonID){
 	el = document.getElementById(buttonID);
@@ -11,6 +12,25 @@ function cycleColor(buttonID){
 }
 
 function submitCombination(){
+	if(gameOver){
+		gameOver = false;
+		row = 0;
+		for(i = 0; i < 12; i++){
+			for(j = 0; j < 4; j++){
+				document.getElementById("guessdot"+i.toString(16)+j).classList.remove("red");
+				document.getElementById("guessdot"+i.toString(16)+j).classList.remove("blue");
+				document.getElementById("guessdot"+i.toString(16)+j).classList.remove("yellow");
+				document.getElementById("guessdot"+i.toString(16)+j).classList.remove("green");
+				document.getElementById("guessdot"+i.toString(16)+j).classList.remove("white");
+				document.getElementById("guessdot"+i.toString(16)+j).classList.remove("black");
+			}
+			for(j = 0; j < 4; j++){
+				document.getElementById("tipdot"+i.toString(16)+j).classList.remove("correct");
+				document.getElementById("tipdot"+i.toString(16)+j).classList.remove("misplaced");
+			}
+		}
+	}
+
 	var buttons = [];
 	for(i = 1; i<= 4; i++)
 		buttons.push(document.getElementById("button"+i));
@@ -60,6 +80,14 @@ function processResponse(request){
 	console.log("correct: "+correct)
 	console.log("misplaced: "+misplaced)
 	tipModification(correct, misplaced)
+	if(correct == 4){
+		gameOver = true;
+		alert("You won! Sumbit a new combination to start a new game.");
+	}
+	else if(row == 12){
+		gameOver = true;
+		alert("You lost. Sumbit a new combination to start a new game.");
+	}
 }
 
 function tipModification(correct, misplaced){

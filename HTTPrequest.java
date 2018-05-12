@@ -7,10 +7,11 @@ public class HTTPrequest {
 	private String url;
 	private String httpVersion;
 	private Map<String, Set<String>> headers;
+	private String paramString;
+	private Map<String, String> params;
 
 	public HTTPrequest(InputStream istream) throws IllegalArgumentException, IOException{
 		headers = new HashMap<String, Set<String>>();
-
 		BufferedReader br = new BufferedReader(new InputStreamReader(istream));
 		String request = br.readLine();
 		String[] temp = request.split(" ");
@@ -29,9 +30,16 @@ public class HTTPrequest {
 		String line;
 		while(!(line = br.readLine()).equals("")){
 			temp = line.split(": ");
-			if(temp.length != 2)
+			if(temp.length != 2){
 				throw new IllegalArgumentException("Request couldn't be understood");
+			}
 			addHeader(temp[0], temp[1]);
+		}
+		if(method.equals("POST")){
+			int cLength = Integer.parseInt(headers.get("Content-Length").iterator().next());
+			char[] cbuf = new char[cLength];
+			br.read(cbuf, 0, cLength);
+			paramString = new String(cbuf);
 		}
 	}
 
@@ -50,6 +58,22 @@ public class HTTPrequest {
 			headers.get(key).add(value);
 		else
 			headers.put(key, new HashSet<String>(Arrays.asList(value)));
+	}
+
+	public String getMethod(){
+		return method;
+	}
+
+	public Map<String, String> getParams(){
+		if(params == null){
+			params = new HashMap<String, String>();
+			String[] temp = paramString.split("&");
+			for(String keyValString : temp){
+				String[] keyVal = keyValString.split("=");
+				params.put(keyVal[0],keyVal[1]);
+			}
+		}	
+		return params;
 	}
 
 	/*

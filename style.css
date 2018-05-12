@@ -1,10 +1,20 @@
 body{
-	background: #48c9b0;
+	background: #9ddbeb;
+	font-family: Sans-serif;
 }
 
 form{
 	margin-left: auto;
 	margin-right: auto;
+}
+
+select{
+	width: 23%;
+	margin-bottom: 10px;
+}
+
+p{
+	margin: 0px;
 }
 
 .panel-container{
@@ -40,6 +50,14 @@ form{
 	margin-right: auto;
 }
 
+.noscript-guess-container{
+	width: 100%;
+	display: inline-block;
+    text-align: center;
+    margin-left: auto;
+	margin-right: auto;
+}
+
 .tip-container{
 	width: 40%;
 	height: 100%;
@@ -54,19 +72,19 @@ form{
 .selection{
 	display: flex;
 	flex-direction: column;
-	width: 300px;
 	margin-left: auto;
 	margin-right: auto;
-	align-content: center;
+	width: 370px;
 }
 
 .text{
 	margin-left: auto;
 	margin-right: auto;
-	height: 30%;
+	margin-bottom: 5px;
+	margin-top: 10px;
 }
 
-.submit-button{
+.submit-button, .noscript-submit-button{
 	margin-left: auto;
 	margin-right: auto;
 }

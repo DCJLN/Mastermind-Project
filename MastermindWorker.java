@@ -35,7 +35,7 @@ public class MastermindWorker extends Thread{
 				return;
 			}
 
-			if(request.getUrl().equals("/")){
+			if(request.getMethod().equals("GET") && request.getUrl().equals("/")){
 				System.out.println("Requested root page: redirecting.");
 				HTTPresponse resp = new HTTPresponse("303");
 				resp.addHeader("Location","/play.html");
@@ -87,6 +87,9 @@ public class MastermindWorker extends Thread{
 					currentSession = new MastermindSession();
 					sessions.put(currentSession.getID(), currentSession);
 				}
+				// if testing a combo, reset the session if the game was won last turn
+				if(filename.equals("eval") && ((currentSession.nbTries() > 0 && currentSession.previousTries().get(currentSession.nbTries()-1)[4] == 4) || currentSession.nbTries() >= 12))
+					currentSession.reset();
 				correctCombo = currentSession.getCombo();
 				System.out.print("Correct combo: ");
 				for(int i = 0; i < 4; i++)
@@ -95,15 +98,22 @@ public class MastermindWorker extends Thread{
 			}
 
 			if(filename.equals("eval")){
-				if(url.length != 2){
-					System.out.println("Request improperly formated: 400");
-					HTTPresponse resp = new HTTPresponse("400");
-					resp.send(ostream);
-					cs.close();
-					return;
+				if(request.getMethod().equals("GET")){
+					if(url.length != 2){
+						System.out.println("Request improperly formated: 400");
+						HTTPresponse resp = new HTTPresponse("400");
+						resp.send(ostream);
+						cs.close();
+						return;
+					}
+					String params = url[1];
+					testCombination(params, false);	
 				}
-				String params = url[1];
-				testCombination(params);
+				if(request.getMethod().equals("POST")){
+					Map<String, String> paramsMap = request.getParams();
+					String params = paramsMap.get("guess1")+"-"+paramsMap.get("guess2")+"-"+paramsMap.get("guess3")+"-"+paramsMap.get("guess4");
+					testCombination(params, true);
+				}
 				cs.close();
 				return;
 			}
@@ -158,7 +168,7 @@ public class MastermindWorker extends Thread{
 		}
 	}
 
-	private void testCombination(String vars){
+	private void testCombination(String vars, boolean reloadPage){
 		String[] combination = vars.split("-");
 		if(combination.length != 4){
 			System.out.println("Combination is not 4 long, sending 400");
@@ -206,16 +216,22 @@ public class MastermindWorker extends Thread{
 				if(combo[i] != -1 && combo[i] == cmb[j]){
 					misplaced++;
 					combo[i] = -1;
+					cmb[j] = -1;
 				}
 			}
 		}
 
-		if(correct == 4)
-			currentSession.invalidate();
-
 		currentSession.addTry(new Byte[]{attempt[0], attempt[1], attempt[2], attempt[3], correct, misplaced});
 
-		System.out.println("Successfully tested combination");
+		System.out.println("Successfully tested combination, "+correct+" correct, "+misplaced+" misplaced.");
+		if(reloadPage){
+			HTTPresponse resp = new HTTPresponse("303");
+			resp.addHeader("Location","/play.html");
+			resp.addHeader("Set-Cookie", "SESSID="+currentSession.getID());
+			resp.send(ostream);
+			return;
+		}
+
 		HTTPresponse resp = new HTTPresponse("204");
 		resp.addHeader("Correct", Integer.toString(correct));
 		resp.addHeader("Misplaced", Integer.toString(misplaced));
@@ -226,8 +242,8 @@ public class MastermindWorker extends Thread{
 	public void deleteInvalidSessions(){
 		// 10 min = 600000 ms
 		sessions.entrySet().removeIf(entry -> entry.getValue().getAge() > 600000);
-		sessions.entrySet().removeIf(entry -> entry.getValue().nbTries() >= 12);
-
+		sessions.entrySet().removeIf(entry -> entry.getValue().nbTries() > 12);
+		sessions.entrySet().removeIf(entry -> !entry.getValue().isValid());
 	}
 
 	public void fillAttemptGrid(HTTPresponse resp){
@@ -269,10 +285,8 @@ public class MastermindWorker extends Thread{
 				int colorIndex;
 				if((colorIndex = grid[row][column]) == -1)
 					i.set(line.replace(" &", ""));
-				else{
+				else
 					i.set(line.replace("&", colors[colorIndex]));
-					System.out.println("Replacing & with "+colors[colorIndex]+", full line: "+line);
-				}
 				counter++;
 			}
 			else

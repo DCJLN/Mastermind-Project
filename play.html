@@ -5,6 +5,12 @@
 		<link rel="stylesheet" href="style.css"/>
 		<title>Mastermind</title>
 		<script src="mastermind.js" defer="defer"></script>
+		<noscript>
+			<style>
+				#colorButtons{display: none;}
+				#submitButton{display: none;}
+			</style>
+		</noscript>
 	</head>
 	
 	<body>
@@ -193,13 +199,52 @@
 				<div class="text">
 					<p>Your next guess:</p>
 				</div>
-				<div class="guess-container">
+				<div class="guess-container" id="colorButtons">
 					<span id="button1" onclick="cycleColor('button1')" class="guess-dot blue"></span>
 					<span id="button2" onclick="cycleColor('button2')" class="guess-dot yellow"></span>
 					<span id="button3" onclick="cycleColor('button3')" class="guess-dot red"></span>
 					<span id="button4" onclick="cycleColor('button4')" class="guess-dot green"></span>
 				</div>
-				<div class="submit-button">
+				<noscript>
+					<div class="noscript-guess-container">
+						<form action="/eval" method="post">
+							<select name="guess1">
+								<option value="0">red</option>
+								<option value="1">blue</option>
+								<option value="2">yellow</option>
+								<option value="3">green</option>
+								<option value="4">white</option>
+								<option value="5">black</option>
+							</select>
+							<select name="guess2">
+								<option value="0">red</option>
+								<option value="1">blue</option>
+								<option value="2">yellow</option>
+								<option value="3">green</option>
+								<option value="4">white</option>
+								<option value="5">black</option>
+							</select>
+							<select name="guess3">
+								<option value="0">red</option>
+								<option value="1">blue</option>
+								<option value="2">yellow</option>
+								<option value="3">green</option>
+								<option value="4">white</option>
+								<option value="5">black</option>
+							</select>
+							<select name="guess4">
+								<option value="0">red</option>
+								<option value="1">blue</option>
+								<option value="2">yellow</option>
+								<option value="3">green</option>
+								<option value="4">white</option>
+								<option value="5">black</option>
+							</select>
+							<input class="noscript-submit-button" type="submit" value="submit"/>
+						</form>
+					</div>
+				</noscript>
+				<div class="submit-button" id="submitButton">
 					<input type="submit" value="submit" onclick="submitCombination()"/>
 				</div>
 			</div>

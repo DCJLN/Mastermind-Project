@@ -8,6 +8,7 @@ public class MastermindSession {
 	private Date creationTimestamp;
 	private byte[] winningCombo;
 	private Random rand = new Random();
+	private boolean isValid = true;
 	public MastermindSession(){
 		sessionID = UUID.randomUUID().toString();
 		previousTries = new ArrayList<Byte[]>();
@@ -43,10 +44,23 @@ public class MastermindSession {
 	}
 
 	public void invalidate(){
-		nbTries = 12;
+		isValid = false;
 	}
 
 	public void addTry(Byte[] attempt){
 		previousTries.add(attempt);
+	}
+
+	public boolean isValid(){
+		return isValid;
+	}
+
+	public void reset(){
+		previousTries = new ArrayList<Byte[]>();
+		nbTries = 0;
+		creationTimestamp = new Date();
+		winningCombo = new byte[4];
+		for(int i = 0; i < 4; i++)
+			winningCombo[i] = (byte)rand.nextInt(6);
 	}
 }
