@@ -1,40 +1,43 @@
 body{
-	margin: 0;
-	padding: 0;
 	background: #48c9b0;
+}
+
+form{
+	margin-left: auto;
+	margin-right: auto;
 }
 
 .panel-container{
 	display: flex;
-	flex-direction: row;
+	flex-direction: column;
 }
 
 .board{
 	display: flex;
 	flex-direction: column;
-	margin-left: 400px;
 	margin-top: 50px;
-	width: 10%;
-	min-width: 450px;
-	height: 73vh;
+	min-width: 370px;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 .answer-container{
-	width: 100%;
 	height: 10%;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 .attempt-container{
 	display: flex;
 	flex-direction: column;
+	margin-left: auto;
+	margin-right: auto;
 	width: 80%;
-	height: 90%;
 }
 
 .guess-container{
-	width: 60%;
-	height: 100%;
-	margin-left: 25px;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 .tip-container{
@@ -51,25 +54,27 @@ body{
 .selection{
 	display: flex;
 	flex-direction: column;
-	margin-left: 100px;
-	margin-top: 300px;
 	width: 300px;
-	height: 15vh;
+	margin-left: auto;
+	margin-right: auto;
+	align-content: center;
 }
 
 .text{
+	margin-left: auto;
+	margin-right: auto;
 	height: 30%;
 }
 
 .submit-button{
-	width: 15px;
-	height: 30%;
+	margin-left: auto;
+	margin-right: auto;
 }
 
 .guess-dot {
     height: 30px;
     width: 30px;
-	margin: 15px 5px;
+	margin: 5px 5px;
     background-color: #bbb;
     border-radius: 50%;
 	box-sizing: border-box;
@@ -81,7 +86,7 @@ body{
 .tip-dot {
     height: 15px;
     width: 15px;
-	margin: 25px 5px;
+	margin: 12px 2px;
     background-color: #bbb;
     border-radius: 50%;
 	box-sizing: border-box;
@@ -114,3 +119,10 @@ body{
 	background-color: black;
 }
 
+.correct {
+	background-color: red;
+}
+
+.misplaced {
+	background-color: white;
+}

@@ -7,7 +7,7 @@ public class HTTPresponse {
 	private String returnCode;
 	private String status;
 	private Map<String, Set<String>> headers;
-	private String responseBody;
+	private List<String> responseBody;
 
 	private Map<String, String> defaultStatus;
 
@@ -28,7 +28,7 @@ public class HTTPresponse {
 	public HTTPresponse(String returnCode) throws IllegalArgumentException{
 		defaultStatus = new HashMap<String, String>();
 		headers = new HashMap<String, Set<String>>();
-		responseBody = "";
+		responseBody = new ArrayList<String>();
 		initializeDefaultStatus();
 		if(!defaultStatus.containsKey(returnCode))
 			throw new IllegalArgumentException("Request couldn't be understood");
@@ -44,27 +44,27 @@ public class HTTPresponse {
 			for(Map.Entry<String, Set<String>> header : headers.entrySet())
 				for(String value : header.getValue())
 					pw.println(header.getKey()+": "+value);
-		pw.println(); // header ends with an empty line.
 		if(responseBody != null){
 			if(headers.containsKey("Transfer-Encoding") && headers.get("Transfer-Encoding").contains("Chunked")){
-				BufferedReader br = new BufferedReader(new StringReader(responseBody));
-				String line;
-				try{
-					while((line = br.readLine()) != null){
-						if(line.length() == 0)
-							continue;
-						// length + 1 for the newline character.
-						pw.println(Integer.toHexString(line.length()+1));
-						pw.println(line);
-					}
-					pw.println("0");
+				pw.println(); // header ends with an empty line.
+				for(String line : responseBody){
+					if(line.length() == 0)
+						continue;
+					// length + 1 for the newline character.
+					pw.println(Integer.toHexString(line.length()+1));
+					pw.println(line);
 				}
-				catch(IOException e){
-					e.printStackTrace();
-				}
+				pw.println("0");
 			}
-			else
-				pw.println(responseBody);
+			else{
+				int contentLength = 0;
+				for(String line : responseBody)
+					contentLength += line.length()+1;
+				pw.println("Content-Length: "+contentLength);
+				pw.println(); // header ends with an empty line.
+				for(String line : responseBody)
+					pw.println(responseBody);
+			}
 		}
 		pw.close();
 	}
@@ -77,6 +77,10 @@ public class HTTPresponse {
 	}
 
 	public void addRespLine(String line){
-		responseBody += line+"\r\n";
+		responseBody.add(line);
+	}
+
+	public List<String> getBody(){
+		return responseBody;
 	}
 }

@@ -17,7 +17,7 @@ public class MastermindWorker extends Thread{
 		cs = clientSocket;
 		ostream = cs.getOutputStream();
 		istream = cs.getInputStream();
-		colors = new String[]{"red", "blue", "yellow", "green", "white", "black"};
+		colors = new String[]{"red", "blue", "yellow", "green", "white", "black", "correct", "misplaced"};
 	}
 	@Override
 	public void run(){
@@ -49,8 +49,6 @@ public class MastermindWorker extends Thread{
 			String filename = url[0].substring(1);
 			System.out.println("Requested: "+filename);
 
-			int skip = 0;
-			List<Byte[]> attempts = null;
 			if(filename.equals("play.html") || filename.equals("eval")){
 				System.out.println("Currently stored sessions: ");
 				for(String id : sessions.keySet())
@@ -89,8 +87,6 @@ public class MastermindWorker extends Thread{
 					currentSession = new MastermindSession();
 					sessions.put(currentSession.getID(), currentSession);
 				}
-				skip = (12 - currentSession.nbTries())*8;
-				attempts = currentSession.previousTries();
 				correctCombo = currentSession.getCombo();
 				System.out.print("Correct combo: ");
 				for(int i = 0; i < 4; i++)
@@ -146,26 +142,12 @@ public class MastermindWorker extends Thread{
 				resp.addHeader("Set-Cookie", "SESSID="+currentSession.getID());
 			BufferedReader bfr = new BufferedReader(new FileReader(file));
 			String line;
-			int currentAttempt = 11;
-			int column = 0;
 			while ((line = bfr.readLine()) != null) {
-				if(filename.equals("play.html")){
-					if(line.contains("&")){
-						if(skip == 0){
-							line.replace("&", colors[attempts.get(currentAttempt)[column%4]]);
-							if(column == 7)
-								currentAttempt--;
-						}
-						else{
-							line.replace(" &", "");
-							skip--;
-						}
-						column = (column+1)%8;
-					}
-				}
 				resp.addRespLine(line);
 			}
 			bfr.close();
+			if(filename.equals("play.html"))
+				fillAttemptGrid(resp);
 			resp.send(ostream);
 			cs.close();
 			System.out.println("Request Processed successfully");
@@ -197,6 +179,7 @@ public class MastermindWorker extends Thread{
 				return;
 			}
 		}
+		byte[] attempt = combo.clone();
 
 		System.out.print("Testing combination ");
 		for(int i = 0; i < 4; i++)
@@ -230,6 +213,8 @@ public class MastermindWorker extends Thread{
 		if(correct == 4)
 			currentSession.invalidate();
 
+		currentSession.addTry(new Byte[]{attempt[0], attempt[1], attempt[2], attempt[3], correct, misplaced});
+
 		System.out.println("Successfully tested combination");
 		HTTPresponse resp = new HTTPresponse("204");
 		resp.addHeader("Correct", Integer.toString(correct));
@@ -243,5 +228,55 @@ public class MastermindWorker extends Thread{
 		sessions.entrySet().removeIf(entry -> entry.getValue().getAge() > 600000);
 		sessions.entrySet().removeIf(entry -> entry.getValue().nbTries() >= 12);
 
+	}
+
+	public void fillAttemptGrid(HTTPresponse resp){
+		List<Byte[]> attempts = currentSession.previousTries();
+		List<String> respBody = resp.getBody();
+		int nbTries = currentSession.nbTries();
+		int[][] grid = new int[12][8];
+		for(int i = 11; i >= 0; i--){
+			if(nbTries > i){
+				Byte[] att = attempts.get(i);
+				int j;
+				for(j = 0; j < 4; j++){
+					grid[i][j] = att[j];
+				}
+				for(int k = 0; k < att[4]; k++){
+					grid[i][j] = 6; //correct
+					j++;
+				}
+				for(int k = 0; k < att[5]; k++){
+					grid[i][j] = 7; //misplaced
+					j++;
+				}
+				for(;j < 8; j++)
+					grid[i][j] = -1;
+
+			}
+			else{
+				for(int j = 0; j < 8; j++)
+					grid[i][j] = -1;
+			}
+		}
+
+		int counter = 0;
+		for(ListIterator<String> i = respBody.listIterator(); i.hasNext();){
+			String line = i.next();
+			if(line.contains("&")){
+				int row = 11-counter/8;
+				int column = counter%8;
+				int colorIndex;
+				if((colorIndex = grid[row][column]) == -1)
+					i.set(line.replace(" &", ""));
+				else{
+					i.set(line.replace("&", colors[colorIndex]));
+					System.out.println("Replacing & with "+colors[colorIndex]+", full line: "+line);
+				}
+				counter++;
+			}
+			else
+				i.set(line.replace(" &", ""));
+		}
 	}
 }

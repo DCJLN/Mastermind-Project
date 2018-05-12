@@ -45,4 +45,8 @@ public class MastermindSession {
 	public void invalidate(){
 		nbTries = 12;
 	}
+
+	public void addTry(Byte[] attempt){
+		previousTries.add(attempt);
+	}
 }

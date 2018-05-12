@@ -1,43 +1,7 @@
-/*
- * //// Si javascript activé ////
- */
-/*for(i = 0; i < 12; i++){
-							
-	var newMainDiv = document.createElement("div")
-	newMainDiv.setAttribute("class", "guess-tip-container")
-	newMainDiv.setAttribute("id", "containertorepeat"+i)
-	
-	var newGuessDiv = document.createElement("div")
-	newGuessDiv.setAttribute("class", "guess-container")
-	newGuessDiv.setAttribute("id", "guess-cont"+i)
-	
-	var newTipDiv = document.createElement("div")
-	newTipDiv.setAttribute("class", "tip-container")
-	newTipDiv.setAttribute("id", "tip-cont"+i)
-
-	document.getElementsByTagName("form")[0].appendChild(newMainDiv)
-	document.getElementById("containertorepeat"+i).appendChild(newGuessDiv)
-	document.getElementById("containertorepeat"+i).appendChild(newTipDiv)
-
-	for(j = 0; j < 4; j++){
-		var newSpan = document.createElement("span")
-		newSpan.setAttribute("class", "guess-dot")
-		newSpan.setAttribute("id", "guessdot"+i+j)
-		document.getElementById("guess-cont"+i).appendChild(newSpan)
-	}
-
-	for(k = 0; k < 4; k++){
-		var newSpan = document.createElement("span")
-		newSpan.setAttribute("class", "tip-dot")
-		newSpan.setAttribute("id", "tipdot"+i+k)
-		document.getElementById("tip-cont"+i).appendChild(newSpan)
-	}
-}*/
-
-
 // colors: RED BLUE YELLOW GREEN WHITE BLACK
 var buttons = [];
 var colors = ["red", "blue", "yellow", "green", "white", "black"];
+var row = 0;
 
 function cycleColor(buttonID){
 	el = document.getElementById(buttonID);
@@ -46,7 +10,6 @@ function cycleColor(buttonID){
 	el.classList.add(colors[el.color]);
 }
 
-// var row = 0;
 function submitCombination(){
 	var buttons = [];
 	for(i = 1; i<= 4; i++)
@@ -59,30 +22,26 @@ function submitCombination(){
 	console.log(url);
 	httpGet(url, processResponse);
 
-/*
- * //// Si javascript activé ////
- */
-/*
 	for(col = 0; col < 4; col++){
-		guessModification("guessdot"+row+col, "button"+(col+1))
+		guessModification("guessdot"+(11-row).toString(16)+col, "button"+(col+1))
 	}
-	row++
-*/
+	row++;
 }
 
-/*
 function guessModification(guessDotId, buttonID){
 	guess = document.getElementById(guessDotId)
 	button = document.getElementById(buttonID)
-	guess.style.backgroundColor = button.style.backgroundColor
+	guess.classList.add(button.classList[1]);
 }
-*/
 
 window.onload = function(){
 	for(i = 1; i<= 4; i++)
 		buttons.push(document.getElementById("button"+i));
 	for(b of buttons)
 		b.color = colors.indexOf(b.classList[1]);
+	for(i = 0; i < 12; i++)
+		if(colors.includes(document.getElementById("guessdot"+i.toString(16)+0).classList[1]))
+			row++;
 }
 
 function httpGet(url, callback){
@@ -95,7 +54,6 @@ function httpGet(url, callback){
     xmlHttp.send(null);
 }
 
-var row = 0
 function processResponse(request){
 	var correct = request.getResponseHeader("Correct");
 	var misplaced = request.getResponseHeader("Misplaced");
@@ -105,20 +63,19 @@ function processResponse(request){
 }
 
 function tipModification(correct, misplaced){
-	nbCorrect = correct
-	nbMisplaced = misplaced
-	hexaRow = (row).toString(16)
+	nbCorrect = correct;
+	nbMisplaced = misplaced;
+	hexaRow = (12-row).toString(16);
 
 	for(i = 0; i < 4; i++){
 		tip = document.getElementById("tipdot"+hexaRow+i)
 		if(nbCorrect > 0){
-			tip.classList.replace("&", "white")
-			nbCorrect--
+			tip.classList.add("correct");
+			nbCorrect--;
 		}
 		else if(nbMisplaced > 0){
-			tip.classList.replace("&", "black")
-			nbMisplaced--
+			tip.classList.add("misplaced");
+			nbMisplaced--;
 		}
 	}
-	row = (row + 1)%12
 }
